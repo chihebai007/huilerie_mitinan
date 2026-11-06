@@ -31,13 +31,14 @@ export function Team() {
   }
   useEffect(() => { void load(); }, []);
 
-  async function act(fn: 'grant_manager' | 'revoke_manager', a: Account) {
+  async function act(fn: 'grant_manager' | 'revoke_manager' | 'delete_manager_account', a: Account) {
     if (fn === 'revoke_manager' && !confirm(`Retirer l’accès manager de ${a.email} ?`)) return;
+    if (fn === 'delete_manager_account' && !confirm(`Supprimer définitivement le compte et les données personnelles de ${a.email} ? Cette action est irréversible.`)) return;
     setBusy(a.id);
     try {
       const { error } = await supabase.rpc(fn, { target_user_id: a.id });
       if (error) throw new Error(readable(error.message));
-      toast.success(fn === 'grant_manager' ? `Accès manager donné à ${a.email}` : `Accès retiré à ${a.email}`);
+      toast.success(fn === 'grant_manager' ? `Accès manager donné à ${a.email}` : fn === 'revoke_manager' ? `Accès retiré à ${a.email}` : `Compte et données de ${a.email} supprimés`);
       await load();
     } catch (e) { toast.error(e instanceof Error ? e.message : 'Opération impossible'); setBusy(null); }
   }
@@ -56,11 +57,11 @@ export function Team() {
     <Input type="search" aria-label="Rechercher par email" placeholder="Rechercher par email…" value={search} onChange={(e) => setSearch(e.target.value)} />
     <div><h3 className="mb-2 font-semibold">Managers actifs ({managers.length})</h3>
       {busy === 'load' ? <p className="text-muted-foreground">Chargement…</p> : managers.filter(match).length === 0 ? <p className="text-muted-foreground">Aucun manager.</p>
-        : managers.filter(match).map((a) => row(a, <Button variant="destructive" disabled={busy !== null} onClick={() => void act('revoke_manager', a)}>{busy === a.id ? 'Patientez…' : 'Retirer l’accès'}</Button>))}
+        : managers.filter(match).map((a) => row(a, <div className="flex flex-wrap gap-2"><Button variant="destructive" disabled={busy !== null} onClick={() => void act('revoke_manager', a)}>{busy === a.id ? 'Patientez…' : 'Retirer l’accès'}</Button><Button variant="outline" disabled={busy !== null} onClick={() => void act('delete_manager_account', a)}>Supprimer les données</Button></div>))}
     </div>
     <div><h3 className="mb-2 font-semibold">Comptes en attente ({pending.length})</h3>
       {busy === 'load' ? null : pending.filter(match).length === 0 ? <p className="text-muted-foreground">Aucun compte en attente.</p>
-        : pending.filter(match).map((a) => row(a, <Button disabled={busy !== null} onClick={() => void act('grant_manager', a)}>{busy === a.id ? 'Patientez…' : 'Donner l’accès manager'}</Button>))}
+        : pending.filter(match).map((a) => row(a, <div className="flex flex-wrap gap-2"><Button disabled={busy !== null} onClick={() => void act('grant_manager', a)}>{busy === a.id ? 'Patientez…' : 'Donner l’accès manager'}</Button><Button variant="outline" disabled={busy !== null} onClick={() => void act('delete_manager_account', a)}>Supprimer les données</Button></div>))}
     </div>
   </section>;
 }

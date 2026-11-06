@@ -50,6 +50,13 @@
       "when": 1793982909306,
       "tag": "0006_managers_without_admin_key",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793983401871,
+      "tag": "0007_delete_manager_account",
+      "breakpoints": true
     }
   ]
 }

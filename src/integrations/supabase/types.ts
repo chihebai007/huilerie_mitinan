@@ -441,6 +441,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_manager_account: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       grant_manager: { Args: { target_user_id: string }; Returns: undefined }
       has_role: {
         Args: {
