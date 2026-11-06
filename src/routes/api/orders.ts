@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { json } from "@/lib/public-db.server";
+import { publicDb, json } from "@/lib/public-db.server";
 import { priceLine } from '../../../public/pack-pricing.js';
 
 const schema = z

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { json } from "@/lib/public-db.server";
+import { publicDb, json } from "@/lib/public-db.server";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(100),

@@ -13,8 +13,7 @@ export const Route = createFileRoute('/api/public/visit')({ server: { handlers: 
     if (!parsed.success) return new Response(null, { status: 400 });
     const countryHeader = request.headers.get('cf-ipcountry');
     const country = countryHeader && /^[A-Z]{2}$/.test(countryHeader) ? countryHeader : 'Inconnu';
-    const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
-    const { error } = await supabaseAdmin.rpc('record_shop_visit', { p_source: parsed.data.source, p_country: country, p_device: parsed.data.device, p_language: parsed.data.language });
+    const { error } = await publicDb().rpc('record_shop_visit', { p_source: parsed.data.source, p_country: country, p_device: parsed.data.device, p_language: parsed.data.language });
     return new Response(null, { status: error ? 503 : 204 });
   },
 } } });
