@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { publicDb } from '@/lib/public-db.server';
 export const Route = createFileRoute('/api/public/visit')({ server: { handlers: {
   POST: async ({ request }) => {
     const origin = request.headers.get('origin');
