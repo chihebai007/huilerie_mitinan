@@ -57,6 +57,20 @@
       "when": 1793983401871,
       "tag": "0007_delete_manager_account",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793984814429,
+      "tag": "0008_portable_public_writes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793984893538,
+      "tag": "0009_fix_place_order_checks",
+      "breakpoints": true
     }
   ]
 }

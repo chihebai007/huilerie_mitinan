@@ -28,8 +28,7 @@ export const Route = createFileRoute("/api/reviews")({
         if (!parsed.success) return json({ error: "Merci de remplir correctement l’avis." }, 400);
         const { website, ...row } = parsed.data;
         if (website) return json({ ok: true }); // robot (honeypot)
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin.from("reviews").insert({ ...row, approved: false });
+        const { error } = await publicDb().from("reviews").insert({ ...row, approved: false });
         if (error) return json({ error: "Erreur serveur" }, 500);
         return json({ ok: true });
       },

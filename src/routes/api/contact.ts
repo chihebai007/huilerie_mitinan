@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { json } from "@/lib/public-db.server";
+import { publicDb, json } from "@/lib/public-db.server";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -18,8 +18,7 @@ export const Route = createFileRoute("/api/contact")({
         if (!parsed.success) return json({ error: "Merci de remplir correctement le formulaire." }, 400);
         const { website, t, ...row } = parsed.data;
         if (website || (t !== undefined && t < 3000)) return json({ ok: true }); // robot
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin.from("contact_messages").insert(row);
+        const { error } = await publicDb().from("contact_messages").insert(row);
         if (error) return json({ error: "Erreur serveur" }, 500);
         return json({ ok: true });
       },
