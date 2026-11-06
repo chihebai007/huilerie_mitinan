@@ -59,7 +59,7 @@ function AdminPage() {
   const [ready, setReady] = useState(false);
   const [role, setRole] = useState<string | null>(null);
   const [tab, setTab] = useState("stats");
-  const tabs = [{v:"stats",l:"Statistiques",icon:LayoutDashboard},{v:"orders",l:"Commandes",icon:ShoppingBag},{v:"products",l:"Produits",icon:Package},{v:"reviews",l:"Avis clients",icon:Star},{v:"shipping",l:"Livraison",icon:Truck},{v:"messages",l:"Messages",icon:Mail},{v:"articles",l:"Articles",icon:FileText},{v:"texts",l:"Textes du site",icon:Type},{v:"photos",l:"Photos du site",icon:ImageIcon},{v:"awards",l:"Distinctions",icon:Award},{v:"team",l:"Équipe",icon:Users}];
+  const tabs = [{v:"stats",l:"Statistiques",icon:LayoutDashboard},{v:"orders",l:"Commandes",icon:ShoppingBag},{v:"products",l:"Produits",icon:Package},{v:"reviews",l:"Avis clients",icon:Star},{v:"shipping",l:"Livraison",icon:Truck},{v:"messages",l:"Messages",icon:Mail},{v:"articles",l:"Articles",icon:FileText},{v:"texts",l:"Textes du site",icon:Type},{v:"photos",l:"Photos du site",icon:ImageIcon},{v:"awards",l:"Distinctions",icon:Award},{v:"team",l:"Managers",icon:Users},{v:"account",l:"Mon mot de passe",icon:KeyRound}];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -97,7 +97,7 @@ function AdminPage() {
         ) : role === null ? (
           <p>Vérification…</p>
         ) : role === "user" ? (
-          <p className="rounded-md border bg-card p-6">Ce compte n’a pas accès à l’administration.</p>
+          <div className="mx-auto max-w-md space-y-6"><p className="rounded-md border bg-card p-6">Ton accès n’a pas encore été activé par l’administrateur.</p><ChangePassword /></div>
         ) : (
           <Tabs value={tab} onValueChange={setTab}>
             <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b pb-4"><div><p className="text-sm text-muted-foreground">{role === 'manager' ? 'Espace manager' : 'Votre boutique'}</p><h1 className="text-2xl font-semibold">{tabs.find((t) => t.v === tab)?.l}</h1></div><a href="/" className="text-sm underline">Voir la boutique ↗</a></div>
@@ -109,6 +109,7 @@ function AdminPage() {
             <TabsContent value="orders"><Orders /></TabsContent>
             <TabsContent value="shipping"><Shipping /></TabsContent>
             <TabsContent value="messages"><Messages readOnly={role === 'manager'} /></TabsContent>
+            <TabsContent value="account"><ChangePassword /></TabsContent>
             {role === 'admin' && <><TabsContent value="articles"><Articles /></TabsContent><TabsContent value="texts"><Texts /></TabsContent><TabsContent value="photos"><SitePhotos /></TabsContent><TabsContent value="awards"><Awards /></TabsContent><TabsContent value="team"><Team /></TabsContent></>}
           </Tabs>
         )}
@@ -118,35 +119,79 @@ function AdminPage() {
 }
 
 function Login() {
-  const [mode, setMode] = useState<"in" | "forgot">("in");
+  const [mode, setMode] = useState<"in" | "forgot" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (mode === "up" && password !== password2) return toast.error("Les deux mots de passe ne correspondent pas.");
+    setBusy(true);
+    try {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+        if (error) throw error;
+        toast.success("Si ce compte existe, un email de réinitialisation vient d’être envoyé.");
+        setMode("in");
+      } else if (mode === "up") {
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/admin` } });
+        if (error) throw error;
+        if (data.user && data.user.identities?.length === 0) throw new Error("Cet email est déjà utilisé. Connectez-vous ou utilisez « Mot de passe oublié ».");
+        setSent(true);
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw new Error(/confirm/i.test(error.message) ? "Confirmez d’abord votre email." : "Email ou mot de passe incorrect.");
+      }
+    } catch (err) {
+      const m = err instanceof Error ? err.message : "";
+      toast.error(/fetch|network/i.test(m) ? "Connexion impossible. Vérifiez votre réseau." : /already|registered/i.test(m) ? "Cet email est déjà utilisé." : m || "Opération impossible");
+    } finally { setBusy(false); }
+  }
+  if (sent) return <div className="mx-auto max-w-sm space-y-4 rounded-lg border bg-card p-6 shadow-sm"><h1 className="text-2xl font-bold">Compte créé</h1><p>Vérifie ton email pour confirmer ton compte, puis demande l’accès à l’administrateur.</p><Button variant="outline" className="w-full" onClick={() => { setSent(false); setMode("in"); }}>Retour à la connexion</Button></div>;
+  return (
+    <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-lg border bg-card p-6 shadow-sm">
+      <h1 className="text-2xl font-bold">{mode === "in" ? "Connexion" : mode === "up" ? "Créer un compte" : "Mot de passe oublié"}</h1>
+      <div className="space-y-2"><Label htmlFor="login-email">Email</Label><Input id="login-email" type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+      {mode !== "forgot" && <div className="space-y-2"><Label htmlFor="login-password">Mot de passe</Label><Input id="login-password" type="password" required minLength={mode === "up" ? 8 : undefined} autoComplete={mode === "up" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} /></div>}
+      {mode === "up" && <div className="space-y-2"><Label htmlFor="login-password2">Confirmer le mot de passe</Label><Input id="login-password2" type="password" required minLength={8} autoComplete="new-password" value={password2} onChange={(e) => setPassword2(e.target.value)} /><p className="text-xs text-muted-foreground">Au moins 8 caractères.</p></div>}
+      <Button className="w-full" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "in" ? "Se connecter" : mode === "up" ? "Créer mon compte" : "Recevoir le lien de réinitialisation"}</Button>
+      <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+        {mode !== "in" && <button type="button" className="underline" onClick={() => setMode("in")}>Retour à la connexion</button>}
+        {mode === "in" && <button type="button" className="underline" onClick={() => setMode("forgot")}>Mot de passe oublié ?</button>}
+        {mode === "in" && <button type="button" className="underline" onClick={() => setMode("up")}>Créer un compte manager</button>}
+      </div>
+    </form>
+  );
+}
+
+function ChangePassword() {
+  const [current, setCurrent] = useState("");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (pw !== pw2) return toast.error("Les deux mots de passe ne correspondent pas.");
     setBusy(true);
-    if (mode === "forgot") {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
-      setBusy(false);
-      if (error) return toast.error(error.message);
-      toast.success("Si ce compte existe, un email de réinitialisation vient d’être envoyé.");
-      setMode("in");
-      return;
-    }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) toast.error("Email ou mot de passe incorrect.");
-    return;
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pw, current_password: current } as { password: string });
+      if (error) throw error;
+      toast.success("Mot de passe modifié");
+      setCurrent(""); setPw(""); setPw2("");
+    } catch (err) {
+      const m = err instanceof Error ? err.message : "";
+      toast.error(/fetch|network/i.test(m) ? "Connexion impossible. Vérifiez votre réseau." : /current|incorrect|invalid/i.test(m) ? "Mot de passe actuel incorrect." : /same|different/i.test(m) ? "Choisissez un mot de passe différent de l’actuel." : "Modification impossible : utilisez au moins 8 caractères.");
+    } finally { setBusy(false); }
   }
   return (
-    <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-lg border bg-card p-6 shadow-sm">
-      <h1 className="text-2xl font-bold">{mode === "in" ? "Connexion" : "Mot de passe oublié"}</h1>
-      <div className="space-y-2"><Label>Email</Label><Input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-      {mode === "in" && <div className="space-y-2"><Label>Mot de passe</Label><Input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>}
-      <Button className="w-full" disabled={busy}>{mode === "in" ? "Se connecter" : "Recevoir le lien de réinitialisation"}</Button>
-      <button type="button" className="w-full text-sm text-muted-foreground underline" onClick={() => setMode(mode === "in" ? "forgot" : "in")}>
-        {mode === "in" ? "Mot de passe oublié ?" : "Retour à la connexion"}
-      </button>
+    <form onSubmit={submit} className="max-w-sm space-y-4 rounded-lg border bg-card p-6">
+      <h2 className="text-xl font-semibold">Changer mon mot de passe</h2>
+      <div className="space-y-2"><Label htmlFor="cp-current">Mot de passe actuel</Label><Input id="cp-current" type="password" required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} /></div>
+      <div className="space-y-2"><Label htmlFor="cp-new">Nouveau mot de passe</Label><Input id="cp-new" type="password" required minLength={8} autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} /></div>
+      <div className="space-y-2"><Label htmlFor="cp-new2">Confirmer le nouveau mot de passe</Label><Input id="cp-new2" type="password" required minLength={8} autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></div>
+      <Button disabled={busy}>{busy ? "Veuillez patienter…" : "Enregistrer le mot de passe"}</Button>
     </form>
   );
 }
