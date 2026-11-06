@@ -281,6 +281,24 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           approved: boolean
@@ -423,6 +441,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      grant_manager: { Args: { target_user_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -439,6 +458,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      revoke_manager: { Args: { target_user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user" | "manager"
