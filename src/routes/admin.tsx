@@ -464,9 +464,9 @@ function Texts() {
     }
     setTrDraft(next); setManual({});
     setList(list.map((t) => (changed.includes(t) ? { ...t, value: draft[t.key] ?? t.value, translations: next[t.key] ?? t.translations } : t)));
-    return;
     if (tr) toast.success("Textes non modifiés à la main traduits automatiquement");
     toast.success(changed.length ? `${changed.length} texte(s) enregistré(s)` : "Aucun changement");
+    return;
   }
   const field = (t: Tables<"site_texts">) => {
     const long = t.value.length > 60;
