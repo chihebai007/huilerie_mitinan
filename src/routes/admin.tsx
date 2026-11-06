@@ -26,7 +26,7 @@ async function autoTranslate(texts: Record<string, string>): Promise<Translated 
   try { const r = await translateFields({ data: { texts } }); toast.dismiss(id); return r; }
   catch (e) { toast.dismiss(id); toast.warning(`Enregistré sans traduction : ${e instanceof Error ? e.message : "erreur"}`); return null; }
 }
-import { LayoutDashboard, Package, ShoppingBag, Users, Star, Truck, Mail, FileText, Image as ImageIcon, Award, Type, ImagePlus, X } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Users, Star, Truck, Mail, FileText, Image as ImageIcon, Award, Type, ImagePlus, X, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,

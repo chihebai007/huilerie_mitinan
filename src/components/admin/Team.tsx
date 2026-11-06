@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactElement } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,7 +44,7 @@ export function Team() {
 
   const q = search.trim().toLowerCase();
   const match = (a: Account) => !q || a.email.toLowerCase().includes(q);
-  const row = (a: Account, action: JSX.Element) => <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-3"><div className="min-w-0"><p className="break-all font-medium">{a.email}</p><p className="text-sm text-muted-foreground">Inscrit le {day(a.created_at)}</p></div>{action}</div>;
+  const row = (a: Account, action: ReactElement) => <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-3"><div className="min-w-0"><p className="break-all font-medium">{a.email}</p><p className="text-sm text-muted-foreground">Inscrit le {day(a.created_at)}</p></div>{action}</div>;
 
   return <section className="space-y-6">
     <h2 className="text-2xl font-semibold">Managers</h2>
