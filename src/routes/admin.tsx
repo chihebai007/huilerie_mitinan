@@ -439,40 +439,65 @@ function SitePhotos() {
 function Texts() {
   const [list, setList] = useState<Tables<"site_texts">[]>([]);
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [trDraft, setTrDraft] = useState<Record<string, { en: string; ar: string }>>({});
+  const [manual, setManual] = useState<Record<string, boolean>>({});
+  const readTr = (t: Tables<"site_texts">) => { const v = (t.translations ?? {}) as Record<string, unknown>; return { en: typeof v["en"] === "string" ? v["en"] : "", ar: typeof v["ar"] === "string" ? v["ar"] : "" }; };
   useEffect(() => {
     supabase.from("site_texts").select("*").order("sort_order").then(({ data }) => {
       const texts = (data ?? []).filter((row) => !row.key.startsWith("image_"));
       setList(texts);
       setDraft(Object.fromEntries(texts.map((t) => [t.key, t.value])));
+      setTrDraft(Object.fromEntries(texts.map((t) => [t.key, readTr(t)])));
     });
   }, []);
   async function save() {
-    const changed = list.filter((t) => draft[t.key] !== t.value);
-    const tr = changed.length ? await autoTranslate(Object.fromEntries(changed.map((t) => [t.key, draft[t.key] ?? ""]))) : null;
+    const changed = list.filter((t) => draft[t.key] !== t.value || manual[t.key]);
+    const toTranslate = changed.filter((t) => draft[t.key] !== t.value && !manual[t.key]);
+    const tr = toTranslate.length ? await autoTranslate(Object.fromEntries(toTranslate.map((t) => [t.key, draft[t.key] ?? ""]))) : null;
+    const next = { ...trDraft };
     for (const t of changed) {
-      const translations = tr ? { en: tr.en[t.key] ?? "", ar: tr.ar[t.key] ?? "" } : t.translations;
+      const auto = !manual[t.key] && tr;
+      const translations = auto ? { en: tr.en[t.key] ?? "", ar: tr.ar[t.key] ?? "" } : (next[t.key] ?? readTr(t));
       const { error } = await supabase.from("site_texts").update({ value: draft[t.key] ?? "", translations }).eq("key", t.key);
       if (error) return toast.error(error.message);
+      next[t.key] = translations;
     }
-    setList(list.map((t) => ({ ...t, value: draft[t.key] ?? t.value })));
-    if (tr) toast.success("Traduit automatiquement en anglais et en arabe");
+    setTrDraft(next); setManual({});
+    setList(list.map((t) => (changed.includes(t) ? { ...t, value: draft[t.key] ?? t.value, translations: next[t.key] ?? t.translations } : t)));
+    if (tr) toast.success("Textes non modifiés à la main traduits automatiquement");
     toast.success(changed.length ? `${changed.length} texte(s) enregistré(s)` : "Aucun changement");
     return;
   }
+  const field = (t: Tables<"site_texts">) => {
+    const long = t.value.length > 60;
+    const tv = trDraft[t.key] ?? { en: "", ar: "" };
+    const setLang = (l: "en" | "ar", v: string) => { setTrDraft({ ...trDraft, [t.key]: { ...tv, [l]: v } }); setManual({ ...manual, [t.key]: true }); };
+    return (
+      <div key={t.key} className="space-y-1">
+        <Label htmlFor={`site-text-${t.key}`}>{t.label} (français)</Label>
+        {long ? <Textarea id={`site-text-${t.key}`} value={draft[t.key] ?? ""} onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })} />
+          : <Input id={`site-text-${t.key}`} value={draft[t.key] ?? ""} onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })} />}
+        <details className="rounded-md border px-3 py-2 text-sm">
+          <summary className="cursor-pointer text-muted-foreground">Anglais et arabe{manual[t.key] ? " — modifié à la main" : ""}</summary>
+          <div className="mt-2 space-y-2">
+            <Label htmlFor={`site-text-${t.key}-en`}>Anglais</Label>
+            {long ? <Textarea id={`site-text-${t.key}-en`} value={tv.en} onChange={(e) => setLang("en", e.target.value)} /> : <Input id={`site-text-${t.key}-en`} value={tv.en} onChange={(e) => setLang("en", e.target.value)} />}
+            <Label htmlFor={`site-text-${t.key}-ar`}>Arabe</Label>
+            {long ? <Textarea dir="rtl" id={`site-text-${t.key}-ar`} value={tv.ar} onChange={(e) => setLang("ar", e.target.value)} /> : <Input dir="rtl" id={`site-text-${t.key}-ar`} value={tv.ar} onChange={(e) => setLang("ar", e.target.value)} />}
+            <p className="text-xs text-muted-foreground">Si vous modifiez l’anglais ou l’arabe, votre version est gardée telle quelle à l’enregistrement.</p>
+          </div>
+        </details>
+      </div>
+    );
+  };
+  const productKeys = ["products_eyebrow", "products_title", "products_text", "see_range", "extra_eyebrow", "extra_title", "extra_text", "extra_button", "virgin_eyebrow", "virgin_title", "virgin_text", "virgin_button"];
   return (
     <div className="space-y-6">
       <section aria-label="Nos produits" className="space-y-4 border-b pb-6">
         <h2 className="text-xl font-semibold">Nos produits</h2>
-        {list.filter((t) => ["products_eyebrow", "products_title", "products_text", "see_range", "extra_eyebrow", "extra_title", "extra_text", "extra_button", "virgin_eyebrow", "virgin_title", "virgin_text", "virgin_button"].includes(t.key)).map((t) => <div key={t.key} className="space-y-1"><Label htmlFor={`site-text-${t.key}`}>{t.label}</Label><Textarea id={`site-text-${t.key}`} value={draft[t.key] ?? ""} onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })} /></div>)}
+        {list.filter((t) => productKeys.includes(t.key)).map(field)}
       </section>
-      {list.filter((t) => !["products_eyebrow", "products_title", "products_text", "see_range", "extra_eyebrow", "extra_title", "extra_text", "extra_button", "virgin_eyebrow", "virgin_title", "virgin_text", "virgin_button"].includes(t.key)).map((t) => (
-        <div key={t.key} className="space-y-1">
-          <Label>{t.label}</Label>
-          {t.value.length > 60
-            ? <Textarea value={draft[t.key] ?? ""} onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })} />
-            : <Input value={draft[t.key] ?? ""} onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })} />}
-        </div>
-      ))}
+      {list.filter((t) => !productKeys.includes(t.key)).map(field)}
       <Button onClick={save} className="sticky bottom-4">Enregistrer les textes</Button>
     </div>
   );
