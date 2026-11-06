@@ -148,6 +148,7 @@ function Login() {
       const m = err instanceof Error ? err.message : "";
       toast.error(/fetch|network/i.test(m) ? "Connexion impossible. Vérifiez votre réseau." : /already|registered/i.test(m) ? "Cet email est déjà utilisé." : m || "Opération impossible");
     } finally { setBusy(false); }
+    return;
   }
   if (sent) return <div className="mx-auto max-w-sm space-y-4 rounded-lg border bg-card p-6 shadow-sm"><h1 className="text-2xl font-bold">Compte créé</h1><p>Vérifie ton email pour confirmer ton compte, puis demande l’accès à l’administrateur.</p><Button variant="outline" className="w-full" onClick={() => { setSent(false); setMode("in"); }}>Retour à la connexion</Button></div>;
   return (
@@ -184,6 +185,7 @@ function ChangePassword() {
       const m = err instanceof Error ? err.message : "";
       toast.error(/fetch|network/i.test(m) ? "Connexion impossible. Vérifiez votre réseau." : /current|incorrect|invalid/i.test(m) ? "Mot de passe actuel incorrect." : /same|different/i.test(m) ? "Choisissez un mot de passe différent de l’actuel." : "Modification impossible : utilisez au moins 8 caractères.");
     } finally { setBusy(false); }
+    return;
   }
   return (
     <form onSubmit={submit} className="max-w-sm space-y-4 rounded-lg border bg-card p-6">
@@ -467,6 +469,7 @@ function SitePhotos() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Impossible d’enregistrer les photos");
     } finally { setBusy(false); }
+    return;
   }
   return <div className="space-y-6">
     <h2 className="text-xl font-semibold">Photos du site</h2>
