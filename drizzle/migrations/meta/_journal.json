@@ -43,6 +43,13 @@
       "when": 1793046298653,
       "tag": "0005_content_translations",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793982909306,
+      "tag": "0006_managers_without_admin_key",
+      "breakpoints": true
     }
   ]
 }

@@ -13,8 +13,6 @@
 - Validate public image sources through `public/image-url.js`, allowing raster data URLs from the shared admin picker but rejecting executable sources.
 - Treat empty saved image values as intentionally removed across public and admin views; the shared picker separates the selected preview from the optional preset library to avoid confusing removal with asset deletion.
 - Enforce shop-staff permissions with database role policies and admin-only team server functions; UI visibility is not authorization.
-- Provision manager credentials through the admin-only team function, require explicit consent before replacing an existing account password, and never return or persist plaintext passwords; this keeps account control deliberate and credentials transient.
-- Manager provisioning must not trigger Auth recovery emails; access notices use managed app emails once a sender domain is configured, with email status separate from access status and no plaintext credentials, so failed delivery never undoes granted access.
 - Keep anonymous analytics in daily aggregate rows without IP addresses or persistent visitor identifiers; acquisition sources are recorded on orders for customer attribution.
 - Enforce cancelled-only order deletion in a database trigger as well as the shared UI rule, so every deletion path respects the restriction.
 - Store quantity offers on products and share pack-pricing logic between the storefront and order handler; persist the chosen pack label with order items so historical orders remain understandable.
@@ -24,3 +22,5 @@
 - Render fixed public photos only from saved `image_` settings, without HTML/CSS preset sources, so refreshes and failed reads cannot resurrect old or removed photos.
 - Render public product, article and award cards plus fixed image sources into the initial HTML using the shared image validator; injected data alone does not provide immediate visible content before browser scripts run.
 - Admin saves re-translate French content to EN/AR through the staff-only translateFields server function (site_texts/articles/awards store it in a translations jsonb; products use name_*/description_* and pack label_*/badge_*), and saving still succeeds if translation fails.
+
+- Manage managers only through the signed-in admin session: self sign-up fills `profiles`, and admin-only SECURITY DEFINER `grant_manager`/`revoke_manager` change roles, so it works on any host without the service-role key.
