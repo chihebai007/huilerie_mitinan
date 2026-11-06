@@ -453,6 +453,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      order_line_price: {
+        Args: { p_offer_id: string; p_product: Json; p_quantity: number }
+        Returns: Json
+      }
+      place_order: {
+        Args: { p_customer: Json; p_items: Json }
+        Returns: number
+      }
       record_shop_visit: {
         Args: {
           p_country: string
