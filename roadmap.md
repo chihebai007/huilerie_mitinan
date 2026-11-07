@@ -18,3 +18,4 @@
 - [ ] Ajouter les notifications des nouvelles commandes et messages pour l’administrateur et les managers autorisés — bloqué : domaine d’envoi non configuré.
 - [ ] Envoyer à chaque client un email récapitulatif à l’adresse saisie après l’enregistrement de sa commande — bloqué : domaine d’envoi non configuré.
 - [x] Vérifier les produits, photos, articles et médailles visibles dans le HTML dès l’ouverture, sans attendre les scripts.
+- [ ] Séparer les connexions admin et manager par onglet et vérifier que les connexions sur plusieurs appareils restent indépendantes.
