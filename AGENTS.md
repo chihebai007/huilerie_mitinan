@@ -24,3 +24,4 @@
 - Admin saves re-translate French content to EN/AR through the staff-only translateFields server function (site_texts/articles/awards store it in a translations jsonb; products use name_*/description_* and pack label_*/badge_*), and saving still succeeds if translation fails.
 
 - Manage managers only through the signed-in admin session: self sign-up fills `profiles`, and admin-only SECURITY DEFINER `grant_manager`/`revoke_manager` change roles, so it works on any host without the service-role key.
+- Use the application-owned tab-scoped staff auth client for every staff page and bearer middleware, with local-scope sign-out; distinct storage/broadcast keys prevent one tab or device from replacing another account. Do not restore the generated bearer attacher, which uses shared browser auth.

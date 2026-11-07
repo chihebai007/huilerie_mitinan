@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/staff-auth';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 export function Traffic({ days }: { days: number }) {
