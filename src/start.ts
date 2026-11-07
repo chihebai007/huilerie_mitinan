@@ -1,7 +1,7 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { attachStaffAuth } from "@/lib/staff-auth-middleware";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -26,6 +26,7 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  // Intentionally use the same tab-scoped client as every staff page/action.
+  functionMiddleware: [attachStaffAuth],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
 }));

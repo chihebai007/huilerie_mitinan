@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/staff-auth";
+import { STAFF_SIGN_OUT } from "@/lib/tab-session";
 import type { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +86,7 @@ function AdminPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <a href="/" className="text-xl font-bold tracking-wide">MITINAN · {role === "manager" ? "Gestion boutique" : "Administration"}</a>
           {session && (
-            <Button variant="secondary" size="sm" onClick={() => supabase.auth.signOut()}>
+            <Button variant="secondary" size="sm" onClick={() => supabase.auth.signOut(STAFF_SIGN_OUT)}>
               Se déconnecter
             </Button>
           )}
