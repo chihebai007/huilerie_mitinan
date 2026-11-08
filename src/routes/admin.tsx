@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { supabase } from "@/lib/staff-auth";
@@ -27,7 +27,7 @@ async function autoTranslate(texts: Record<string, string>): Promise<Translated 
   try { const r = await translateFields({ data: { texts } }); toast.dismiss(id); return r; }
   catch (e) { toast.dismiss(id); toast.warning(`Enregistré sans traduction : ${e instanceof Error ? e.message : "erreur"}`); return null; }
 }
-import { LayoutDashboard, Package, ShoppingBag, Users, Star, Truck, Mail, FileText, Image as ImageIcon, Award, Type, ImagePlus, X, KeyRound } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Users, Star, Truck, Mail, FileText, Image as ImageIcon, Award, Type, ImagePlus, X, KeyRound, Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -119,6 +119,19 @@ function AdminPage() {
   );
 }
 
+function LoginPasswordInput(props: Omit<ComponentProps<typeof Input>, "type">) {
+  const [visible, setVisible] = useState(false);
+  const action = visible ? "Masquer le mot de passe" : "Afficher le mot de passe";
+  return (
+    <div className="relative">
+      <Input {...props} type={visible ? "text" : "password"} className="pr-12" />
+      <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full w-11 text-muted-foreground" aria-label={action} title={action} aria-controls={props.id} aria-pressed={visible} onClick={() => setVisible((value) => !value)}>
+        {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+      </Button>
+    </div>
+  );
+}
+
 function Login() {
   const [mode, setMode] = useState<"in" | "forgot" | "up">("in");
   const [email, setEmail] = useState("");
@@ -156,8 +169,8 @@ function Login() {
     <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-lg border bg-card p-6 shadow-sm">
       <h1 className="text-2xl font-bold">{mode === "in" ? "Connexion" : mode === "up" ? "Créer un compte" : "Mot de passe oublié"}</h1>
       <div className="space-y-2"><Label htmlFor="login-email">Email</Label><Input id="login-email" type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-      {mode !== "forgot" && <div className="space-y-2"><Label htmlFor="login-password">Mot de passe</Label><Input id="login-password" type="password" required minLength={mode === "up" ? 8 : undefined} autoComplete={mode === "up" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} /></div>}
-      {mode === "up" && <div className="space-y-2"><Label htmlFor="login-password2">Confirmer le mot de passe</Label><Input id="login-password2" type="password" required minLength={8} autoComplete="new-password" value={password2} onChange={(e) => setPassword2(e.target.value)} /><p className="text-xs text-muted-foreground">Au moins 8 caractères.</p></div>}
+      {mode !== "forgot" && <div className="space-y-2"><Label htmlFor="login-password">Mot de passe</Label><LoginPasswordInput key={mode} id="login-password" required minLength={mode === "up" ? 8 : undefined} autoComplete={mode === "up" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} /></div>}
+      {mode === "up" && <div className="space-y-2"><Label htmlFor="login-password2">Confirmer le mot de passe</Label><LoginPasswordInput id="login-password2" required minLength={8} autoComplete="new-password" value={password2} onChange={(e) => setPassword2(e.target.value)} /><p className="text-xs text-muted-foreground">Au moins 8 caractères.</p></div>}
       <Button className="w-full" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "in" ? "Se connecter" : mode === "up" ? "Créer mon compte" : "Recevoir le lien de réinitialisation"}</Button>
       <div className="flex flex-col gap-2 text-sm text-muted-foreground">
         {mode !== "in" && <button type="button" className="underline" onClick={() => setMode("in")}>Retour à la connexion</button>}
