@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,5 +16,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  useEffect(() => {
+    // Password-reset links can land on the home page: forward them to the reset form.
+    const { hash, search } = window.location;
+    if (/type=recovery/.test(hash + search) || /error_code=otp_expired/.test(hash)) {
+      window.location.replace(`/reset-password${search}${hash}`);
+    }
+  }, []);
   return <iframe src="/site.html" title="MITINAN" className="fixed inset-0 h-full w-full border-0" />;
 }

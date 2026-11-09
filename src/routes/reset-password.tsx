@@ -56,7 +56,11 @@ function ResetPassword() {
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border bg-card p-6 shadow-sm">
         <h1 className="text-2xl font-bold">Nouveau mot de passe</h1>
         {!ready ? (
-          <p className="text-sm text-muted-foreground">Ouvrez cette page depuis le lien reçu par email.</p>
+          <p className="text-sm text-muted-foreground">
+            {typeof window !== "undefined" && /error/.test(window.location.hash)
+              ? "Ce lien a expiré ou a déjà été utilisé. Retournez sur la page de connexion et cliquez à nouveau sur « Mot de passe oublié »."
+              : "Ouvrez cette page depuis le lien reçu par email."}
+          </p>
         ) : (
           <>
             <div className="space-y-2"><Label>Nouveau mot de passe</Label><Input type="password" autoComplete="new-password" required value={pw} onChange={(e) => setPw(e.target.value)} /></div>
