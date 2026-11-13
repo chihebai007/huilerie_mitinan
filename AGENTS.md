@@ -21,7 +21,7 @@
 
 - Render fixed public photos only from saved `image_` settings, without HTML/CSS preset sources, so refreshes and failed reads cannot resurrect old or removed photos.
 - Render public product, article and award cards plus fixed image sources into the initial HTML using the shared image validator; injected data alone does not provide immediate visible content before browser scripts run.
-- Admin saves re-translate French content to EN/AR through the staff-only translateFields server function (site_texts/articles/awards store it in a translations jsonb; products use name_*/description_* and pack label_*/badge_*), and saving still succeeds if translation fails.
+- Admin saves translate changed French content through the staff-only translateFields server function; site texts and articles preserve EN/AR edits made manually in the current form, and saving still succeeds if translation fails. Store site texts/articles/awards in translations jsonb and products/packs in their language columns.
 
 - Manage managers only through the signed-in admin session: self sign-up fills `profiles`, and admin-only SECURITY DEFINER `grant_manager`/`revoke_manager` change roles, so it works on any host without the service-role key.
 - Use the application-owned tab-scoped staff auth client for every staff page and bearer middleware, with local-scope sign-out; distinct storage/broadcast keys prevent one tab or device from replacing another account. Do not restore the generated bearer attacher, which uses shared browser auth.

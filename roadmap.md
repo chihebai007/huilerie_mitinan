@@ -20,3 +20,4 @@
 - [x] Vérifier les produits, photos, articles et médailles visibles dans le HTML dès l’ouverture, sans attendre les scripts.
 - [x] Séparer les connexions par onglet, conserver la session après actualisation et limiter la déconnexion à la session courante ; tests automatiques et affichage PC/téléphone/tablette vérifiés.
 - [ ] Vérifier deux comptes admin/manager réellement connectés simultanément — bloqué : aucune session de test autorisée disponible.
+- [ ] Ajouter les traductions anglaises et arabes modifiables aux articles et vérifier leur conservation à l’enregistrement.
