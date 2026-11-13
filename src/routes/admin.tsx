@@ -454,8 +454,8 @@ function Articles() {
             const translations = readArticleTranslations(edit.translations)[language];
             const name = language === 'en' ? 'anglais' : 'arabe';
             return <div key={language} className="min-w-0 space-y-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              <div className="space-y-2"><Label htmlFor={`article-title-${language}`}>Titre ({name})</Label><Input id={`article-title-${language}`} value={translations.title ?? ''} onChange={(e) => setTranslation(language, 'title', e.target.value)} /></div>
-              <div className="space-y-2"><Label htmlFor={`article-excerpt-${language}`}>Résumé ({name})</Label><Textarea id={`article-excerpt-${language}`} value={translations.excerpt ?? ''} onChange={(e) => setTranslation(language, 'excerpt', e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor={`article-title-${language}`}>Titre ({name})</Label><Input id={`article-title-${language}`} value={translations['title'] ?? ''} onChange={(e) => setTranslation(language, 'title', e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor={`article-excerpt-${language}`}>Résumé ({name})</Label><Textarea id={`article-excerpt-${language}`} value={translations['excerpt'] ?? ''} onChange={(e) => setTranslation(language, 'excerpt', e.target.value)} /></div>
             </div>;
           })}
         </div>
