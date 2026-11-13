@@ -20,3 +20,5 @@
 - [x] Vérifier les produits, photos, articles et médailles visibles dans le HTML dès l’ouverture, sans attendre les scripts.
 - [x] Séparer les connexions par onglet, conserver la session après actualisation et limiter la déconnexion à la session courante ; tests automatiques et affichage PC/téléphone/tablette vérifiés.
 - [ ] Vérifier deux comptes admin/manager réellement connectés simultanément — bloqué : aucune session de test autorisée disponible.
+- [x] Ajouter les traductions anglaises et arabes modifiables aux articles ; conservation manuelle et automatique vérifiée par trois tests.
+- [ ] Vérifier l’enregistrement des traductions d’un article dans l’administration — bloqué : le compte de test disponible est manager, sans accès aux articles.

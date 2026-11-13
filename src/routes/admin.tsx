@@ -19,6 +19,7 @@ import { QuantityOffers } from "@/components/admin/QuantityOffers";
 import { readOffers } from '../../public/pack-pricing.js';
 import { canDeleteOrder, canOpenTab } from "@/lib/shop-access";
 import { translateFields } from "@/lib/translate.functions";
+import { articleTranslationsForSave, readArticleTranslations } from "@/lib/article-translations";
 
 type Translated = { en: Record<string, string>; ar: Record<string, string> };
 // Always re-translates French text to EN/AR; returns null (and warns) if the service fails so saving still works.
@@ -406,16 +407,29 @@ type Article = Tables<"articles">;
 function Articles() {
   const [list, setList] = useState<Article[]>([]);
   const [edit, setEdit] = useState<Partial<Article> | null>(null);
+  const [manual, setManual] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const openArticle = (article: Partial<Article>) => { setManual(false); setEdit(article); };
+  const setTranslation = (language: 'en' | 'ar', field: string, value: string) => {
+    if (!edit) return;
+    const translations = readArticleTranslations(edit.translations);
+    setEdit({ ...edit, translations: { ...translations, [language]: { ...translations[language], [field]: value } } });
+    setManual(true);
+  };
   const load = () => supabase.from("articles").select("*").order("created_at", { ascending: false }).then(({ data }) => setList(data ?? []));
   useEffect(() => { load(); }, []);
 
   async function save(e: FormEvent) {
     e.preventDefault();
-    if (!edit) return;
+    if (!edit || saving) return;
+    setSaving(true);
     const { id, created_at: _c, updated_at: _u, ...row } = edit as Article;
-    const t = await autoTranslate({ title: row.title, excerpt: row.excerpt ?? "", content: row.content ?? "" });
-    if (t) row.translations = t;
+    const original = list.find((article) => article.id === id);
+    const frenchChanged = !original || original.title !== row.title || original.excerpt !== row.excerpt || original.content !== row.content;
+    const t = !manual && frenchChanged ? await autoTranslate({ title: row.title, excerpt: row.excerpt ?? "", content: row.content ?? "" }) : null;
+    row.translations = articleTranslationsForSave(manual, row.translations, t);
     const { error } = id ? await supabase.from("articles").update(row).eq("id", id) : await supabase.from("articles").insert(row);
+    setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Article enregistré");
     setEdit(null);
@@ -433,21 +447,34 @@ function Articles() {
       <h2 className="text-xl font-semibold">{edit.id ? "Modifier l’article" : "Nouvel article"}</h2>
       <div className="space-y-2"><Label>Titre</Label><Input required value={edit.title ?? ""} onChange={(e) => setEdit({ ...edit, title: e.target.value })} /></div>
       <div className="space-y-2"><Label>Résumé</Label><Textarea value={edit.excerpt ?? ""} onChange={(e) => setEdit({ ...edit, excerpt: e.target.value })} /></div>
+      <details className="rounded-md border px-3 py-2 text-sm">
+        <summary className="cursor-pointer text-muted-foreground">Anglais et arabe{manual ? ' — modifié à la main' : ''}</summary>
+        <div className="mt-3 grid gap-4 md:grid-cols-2">
+          {(['en', 'ar'] as const).map((language) => {
+            const translations = readArticleTranslations(edit.translations)[language];
+            const name = language === 'en' ? 'anglais' : 'arabe';
+            return <div key={language} className="min-w-0 space-y-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+              <div className="space-y-2"><Label htmlFor={`article-title-${language}`}>Titre ({name})</Label><Input id={`article-title-${language}`} value={translations['title'] ?? ''} onChange={(e) => setTranslation(language, 'title', e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor={`article-excerpt-${language}`}>Résumé ({name})</Label><Textarea id={`article-excerpt-${language}`} value={translations['excerpt'] ?? ''} onChange={(e) => setTranslation(language, 'excerpt', e.target.value)} /></div>
+            </div>;
+          })}
+        </div>
+      </details>
       <ImagePicker value={edit.image_url ?? ""} onChange={(v) => setEdit({ ...edit, image_url: v })} />
       <div className="flex items-center gap-2"><Switch checked={!!edit.published} onCheckedChange={(v) => setEdit({ ...edit, published: v })} /><Label>Publié sur le site</Label></div>
-      <div className="flex gap-2"><Button>Enregistrer</Button><Button type="button" variant="outline" onClick={() => setEdit(null)}>Annuler</Button></div>
+      <div className="flex gap-2"><Button disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</Button><Button type="button" variant="outline" disabled={saving} onClick={() => setEdit(null)}>Annuler</Button></div>
     </form>
   );
 
   return (
     <div className="space-y-4">
-      <Button onClick={() => setEdit({ title: "", excerpt: "", image_url: IMAGES[1], published: true })}>+ Ajouter un article</Button>
+      <Button onClick={() => openArticle({ title: "", excerpt: "", image_url: IMAGES[1], published: true })}>+ Ajouter un article</Button>
       {list.map((a) => (
         <div key={a.id} className="flex flex-wrap items-center gap-4 rounded-lg border bg-card p-4">
           {a.image_url && <img src={a.image_url} alt="" className="h-16 w-16 rounded object-cover" />}
           <div className="min-w-48 flex-1"><p className="font-semibold">{a.title}</p><p className="line-clamp-1 text-sm text-muted-foreground">{a.excerpt}</p></div>
           <span className="text-xs text-muted-foreground">{a.published ? "Publié" : "Brouillon"}</span>
-          <Button size="sm" variant="outline" onClick={() => setEdit(a)}>Modifier</Button>
+          <Button size="sm" variant="outline" onClick={() => openArticle(a)}>Modifier</Button>
           <Button size="sm" variant="destructive" onClick={() => remove(a)}>Supprimer</Button>
         </div>
       ))}
